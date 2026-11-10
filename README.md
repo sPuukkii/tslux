@@ -1,4 +1,4 @@
-# tsLuxEvents Website
+# TsLuxEvents Website
 
 This project is a beginner-friendly booking website for a balloon decor and event styling business.
 It uses only HTML, CSS, and vanilla JavaScript.

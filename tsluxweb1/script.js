@@ -69,6 +69,12 @@ const PRICING_DATA = {
   services: {
     shimmerWall: {
       id: "shimmerWall",
+      // Example photos shown on the booking page for this package (files in assets/images/).
+      photos: [
+        { file: "custom.JPG", alt: "Navy and silver shimmer wall backdrop with balloons and marquee numbers" },
+        { file: "purpleshimmer.jpeg", alt: "Silver shimmer wall with purple balloon garlands and florals" },
+        { file: "purpleshimmer1.jpeg", alt: "Purple draped shimmer wall with balloon garlands" },
+      ],
       bookingLabel: "Shimmer Wall Package",
       tagline: "Backdrop styling with balloons and focal-wall impact",
       comboTagline: "Add a shimmer backdrop focal point",
@@ -97,6 +103,12 @@ const PRICING_DATA = {
     },
     balloonDecor: {
       id: "balloonDecor",
+      // Example photos shown on the booking page for this package (files in assets/images/).
+      photos: [
+        { file: "balloon1.jpg", alt: "Rose gold balloon garland with a Happy Birthday backdrop and marquee 60" },
+        { file: "smileyarch.jpeg", alt: "Pastel rainbow balloon arch with daisy accents" },
+        { file: "balloon.jpg", alt: "Pink, red, and heart print balloon garland with a red fringe backdrop" },
+      ],
       bookingLabel: "Balloon Decor Packages",
       tagline: "Organic balloon installs for parties, halls, and photo zones",
       comboTagline: "Add supporting balloon decor",
@@ -125,6 +137,12 @@ const PRICING_DATA = {
     },
     mocktailBar: {
       id: "mocktailBar",
+      // Example photos shown on the booking page for this package (files in assets/images/).
+      photos: [
+        { file: "mocktail1.jpg", alt: "Outdoor mocktail bar with colorful drink dispensers and rimmed glasses" },
+        { file: "mocktail2.jpeg", alt: "Two signature mocktails in ribbed dispensers on white risers" },
+        { file: "mocktail3.jpeg", alt: "Mocktail pouches beside a fruit punch dispenser" },
+      ],
       bookingLabel: "Mocktail Bar Service",
       tagline: "Styled beverage presentation for a polished guest feature",
       comboTagline: "Add a styled mocktail station",
@@ -157,6 +175,12 @@ const PRICING_DATA = {
     },
     dessertTable: {
       id: "dessertTable",
+      // Example photos shown on the booking page for this package (files in assets/images/).
+      photos: [
+        { file: "icecream.jpeg", alt: "Ice cream sundae bar with toppings beside a graduation cake" },
+        { file: "desert.JPG", alt: "Navy and gold birthday cake with cookies and cupcakes" },
+        { file: "fruitcup.jpg", alt: "Fresh fruit cups displayed on white risers" },
+      ],
       bookingLabel: "Dessert Table Styling",
       tagline: "Layered dessert presentation with polished table styling",
       comboTagline: "Add dessert table styling",
@@ -221,8 +245,8 @@ function buildHeader() {
   target.innerHTML = `
     <header class="site-header">
       <div class="site-header__inner">
-        <a class="brand" href="${links.home}" aria-label="tsLuxEvents home">
-          <strong>tsLuxEvents</strong>
+        <a class="brand" href="${links.home}" aria-label="TsLuxEvents home">
+          <strong>TsLuxEvents</strong>
           <span>Balloon Decor & Event Styling</span>
         </a>
 
@@ -253,7 +277,7 @@ function buildFooter() {
       <div class="footer-panel">
         <div class="footer-grid">
           <div>
-            <h3>tsLuxEvents</h3>
+            <h3>TsLuxEvents</h3>
             <p>
               Luxe balloon decor, shimmer wall styling, mocktail service presentation,
               and dessert table styling for memorable celebrations.
@@ -279,7 +303,7 @@ function buildFooter() {
 
         <div class="footer-meta">
           <span>Styled for birthdays, graduations, showers, and intimate events.</span>
-          <span>&copy; <span id="footer-year"></span> tsLuxEvents</span>
+          <span>&copy; <span id="footer-year"></span> TsLuxEvents</span>
         </div>
       </div>
     </footer>
@@ -697,8 +721,38 @@ function setupBookingPage() {
     }).join("");
   }
 
+  // Shows example photos of the chosen package (and any extra services) in the estimate.
+  function renderEstimatePhotos(selection) {
+    const target = document.getElementById("booking-estimate-photos");
+    if (!target) return;
+
+    const base = document.body.dataset.base || "";
+    const mainService = getService(selection.mainServiceId);
+    const items = (mainService.photos || []).map((photo) => ({ ...photo, label: mainService.bookingLabel }));
+    selection.extraServices.forEach((extra) => {
+      const extraService = getService(extra.serviceId);
+      if (extraService.photos && extraService.photos[0]) {
+        items.push({ ...extraService.photos[0], label: extraService.bookingLabel });
+      }
+    });
+
+    target.innerHTML = items.length ? `
+      <p class="estimate-photos__label">Examples of what you're booking <span>(tap to enlarge)</span></p>
+      <div class="estimate-photos__grid">
+        ${items.map((item) => `
+          <figure class="estimate-photos__item" data-caption="${item.label}: ${item.alt}">
+            <img src="${base}assets/images/${item.file}" alt="${item.alt}" loading="lazy" decoding="async">
+            <figcaption>${item.label}</figcaption>
+          </figure>
+        `).join("")}
+      </div>
+    ` : "";
+  }
+
   function updateEstimate() {
     const selection = buildBookingSelection(state);
+
+    renderEstimatePhotos(selection);
 
     breakdown.innerHTML = [
       createBreakdownRow(selection.mainLabel, formatCurrency(selection.mainPrice)),
@@ -1041,10 +1095,20 @@ function injectSkipLink() {
   - To exclude a photo, add data-no-lightbox to its <img> tag.
 */
 function setupLightbox() {
-  const images = Array.from(document.querySelectorAll("main img")).filter(
-    (img) => !img.closest("a") && !img.hasAttribute("data-no-lightbox")
-  );
-  if (!images.length || typeof HTMLDialogElement === "undefined") return;
+  if (typeof HTMLDialogElement === "undefined") return;
+  const isZoomable = (img) =>
+    img instanceof HTMLImageElement &&
+    img.closest("main") &&
+    !img.closest("a") &&
+    !img.hasAttribute("data-no-lightbox");
+  const allImages = () => Array.from(document.querySelectorAll("main img")).filter(isZoomable);
+  const prepare = (img) => {
+    if (img.classList.contains("is-zoomable")) return;
+    img.classList.add("is-zoomable");
+    img.tabIndex = 0;
+    img.setAttribute("role", "button");
+    img.setAttribute("aria-label", `View larger: ${img.alt || "photo"}`);
+  };
 
   const dialog = document.createElement("dialog");
   dialog.className = "lightbox";
@@ -1070,9 +1134,11 @@ function setupLightbox() {
   const isVisible = (img) => img.offsetParent !== null;
   const groupFor = (img) => {
     const section = img.closest("section") || document.querySelector("main");
-    return images.filter((other) => section.contains(other) && isVisible(other));
+    return allImages().filter((other) => section.contains(other) && isVisible(other));
   };
   const captionFor = (img) => {
+    const custom = img.closest("[data-caption]")?.dataset.caption;
+    if (custom) return custom;
     const figcaption = img.closest("figure")?.querySelector("figcaption");
     return (figcaption ? figcaption.textContent : img.alt || "").trim().replace(/\s+/g, " ");
   };
@@ -1088,24 +1154,28 @@ function setupLightbox() {
     nextButton.hidden = !multiple;
   }
 
-  images.forEach((img) => {
-    img.classList.add("is-zoomable");
-    img.tabIndex = 0;
-    img.setAttribute("role", "button");
-    img.setAttribute("aria-label", `View larger: ${img.alt || "photo"}`);
-    const open = () => {
-      group = groupFor(img);
-      show(group.indexOf(img));
-      dialog.showModal();
-      document.documentElement.classList.add("has-lightbox");
-    };
-    img.addEventListener("click", open);
-    img.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        open();
-      }
-    });
+  function open(img) {
+    group = groupFor(img);
+    show(Math.max(group.indexOf(img), 0));
+    dialog.showModal();
+    document.documentElement.classList.add("has-lightbox");
+  }
+
+  // Mark photos as zoomable now and whenever new ones appear (e.g. booking page examples).
+  allImages().forEach(prepare);
+  new MutationObserver(() => allImages().forEach(prepare)).observe(document.querySelector("main") || document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  document.addEventListener("click", (event) => {
+    if (isZoomable(event.target)) open(event.target);
+  });
+  document.addEventListener("keydown", (event) => {
+    if ((event.key === "Enter" || event.key === " ") && isZoomable(event.target)) {
+      event.preventDefault();
+      open(event.target);
+    }
   });
 
   dialog.querySelector(".lightbox__close").addEventListener("click", () => dialog.close());

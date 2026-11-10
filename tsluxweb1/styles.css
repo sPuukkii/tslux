@@ -1,7 +1,7 @@
 /*
   FILE: styles.css
   PURPOSE:
-  - Shared styles for the full tsLuxEvents website.
+  - Shared styles for the full TsLuxEvents website.
   - This file controls layout, colors, spacing, cards, forms, and responsive behavior.
 
   BEGINNER GUIDE:
@@ -1191,6 +1191,64 @@ p {
   .choice-card:hover,
   .checkbox-card:hover {
     transform: none;
+  }
+}
+
+/* ---------- Booking: example photos of the chosen package ---------- */
+.estimate-photos:empty {
+  display: none;
+}
+
+.estimate-photos {
+  margin-top: 16px;
+}
+
+.estimate-photos__label {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.estimate-photos__label span {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.estimate-photos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.estimate-photos__item {
+  margin: 0;
+}
+
+.estimate-photos__item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.estimate-photos__item figcaption {
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 760px) {
+  .estimate-photos__grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px;
+  }
+
+  .estimate-photos__item {
+    flex: 0 0 62%;
+    scroll-snap-align: start;
   }
 }
 
